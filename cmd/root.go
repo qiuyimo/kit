@@ -12,8 +12,9 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "kit",
-	Short: "kit tool",
+	Use:     "kit",
+	Short:   "kit tool",
+	Version: "v0.0.1",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
