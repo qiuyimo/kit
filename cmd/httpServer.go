@@ -24,7 +24,7 @@ var httpServerCmd = &cobra.Command{
 			dstIpPort := c.Request.Context().Value(http.LocalAddrContextKey).(net.Addr).String()
 			log.Println("src_ip_port", srcIpPort)
 			log.Println("dest_ip_port", dstIpPort)
-			c.String(http.StatusOK, "srcIpPort: %v, dstIpPort: %v\n", srcIpPort, dstIpPort)
+			c.String(http.StatusOK, "response form httpServer\nsrcIpPort: %v, dstIpPort: %v\n", srcIpPort, dstIpPort)
 		})
 		panic(r.Run(":" + port))
 	},
