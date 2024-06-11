@@ -21,7 +21,12 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/qiuyimo/kit/cmd"
+import (
+	"github.com/qiuyimo/kit/cmd"
+
+	_ "github.com/qiuyimo/kit/cmd/httpserver"
+	_ "github.com/qiuyimo/kit/cmd/ipvlan"
+)
 
 func main() {
 	cmd.Execute()

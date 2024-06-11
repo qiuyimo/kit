@@ -3,9 +3,13 @@ module github.com/qiuyimo/kit
 go 1.21.6
 
 require (
+	github.com/coreos/go-iptables v0.7.0
+	github.com/duke-git/lancet/v2 v2.3.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
+	github.com/vishvananda/netlink v1.1.0
+	github.com/vishvananda/netns v0.0.4
 )
 
 require (
