@@ -19,9 +19,13 @@ var (
 
 // httpServerCmd represents the httpServer command
 var httpServerCmd = &cobra.Command{
-	Use: "httpServer",
-	Short: `http server，收到请求后打印请求的 src ip port 和 dest ip port
-mock 墨攻的接口
+	Use:   "httpServer",
+	Short: `http server`,
+	Long: `http server
+
+NoRoute: 收到请求后打印请求的 src ip port 和 dest ip port
+mock 墨攻的接口，获取用户信息: /auth/plat/userinfo
+mock 墨攻的接口，订单回调: /mogong/feedback
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("httpServer called")
@@ -49,5 +53,5 @@ func init() {
 	cmd.RootCmd().AddCommand(httpServerCmd)
 
 	httpServerCmd.Flags().StringVarP(&port, "port", "p", "80", "http 服务监听的端口")
-	httpServerCmd.Flags().StringVarP(&ip, "ip", "i", "", "http 服务监听的ip")
+	httpServerCmd.Flags().StringVarP(&ip, "ip", "i", "", "http 服务监听的ip (默认全部IP)")
 }
