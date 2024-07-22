@@ -26,6 +26,7 @@ import (
 
 	_ "github.com/qiuyimo/kit/cmd/httpserver"
 	_ "github.com/qiuyimo/kit/cmd/ipvlan"
+	_ "github.com/qiuyimo/kit/cmd/vlan"
 )
 
 func main() {
