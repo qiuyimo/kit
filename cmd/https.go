@@ -33,7 +33,7 @@ var httpsCmd = &cobra.Command{
 			Handler: engine,
 		}
 
-		tlsAddr := "127.0.0.1:8888"
+		tlsAddr := ":8888"
 
 		tlsConfig := getTlsCfg()
 		listen, err := tls.Listen("tcp", tlsAddr, tlsConfig)
@@ -85,9 +85,9 @@ func getCertificateByDomain(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, e
 		Cache:  autocert.DirCache("certs"),
 	}
 
-	if helloInfo.ServerName == "" {
-		return getDefaultCertificate()
-	}
+	// if helloInfo.ServerName == "" {
+	// 	return getDefaultCertificate()
+	// }
 	// autocert
 	tlsCert, err := AcmeCertManager.GetCertificate(helloInfo)
 	if err != nil {
