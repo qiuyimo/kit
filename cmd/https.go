@@ -85,9 +85,9 @@ func getCertificateByDomain(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, e
 		Cache:  autocert.DirCache("certs"),
 	}
 
-	// if helloInfo.ServerName == "" {
-	// 	return getDefaultCertificate()
-	// }
+	if helloInfo.ServerName == "" {
+		return getDefaultCertificate()
+	}
 	// autocert
 	tlsCert, err := AcmeCertManager.GetCertificate(helloInfo)
 	if err != nil {

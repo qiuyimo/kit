@@ -1,103 +1,72 @@
 package cmd
 
 import (
-	"crypto/tls"
+	"bytes"
 	"fmt"
 	"net"
-	"net/http"
-	"os"
+	"os/exec"
+	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/acme/autocert"
+)
+
+var (
+	ip   string
+	port string
 )
 
 // demoCmd represents the demo command
 var demoCmd = &cobra.Command{
 	Use:   "demo",
 	Short: "demo",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(c *cobra.Command, args []string) {
 		fmt.Println("demo called")
 
-		ipCIDR := "192.168.3.218/24"
-		ip, _, err := net.ParseCIDR(ipCIDR)
+		// 定义要执行的命令
+		cmd := exec.Command("ip", "-6", "route")
+
+		// 创建一个缓冲区，用来存储命令输出的数据
+		var out bytes.Buffer
+		cmd.Stdout = &out
+
+		// 执行命令
+		err := cmd.Run()
 		if err != nil {
-			panic(err)
+			fmt.Printf("Error executing command: %v\n", err)
+			return
 		}
-		isNil := ip.To16() == nil
-		fmt.Println(isNil) // false
 
-		// engine := gin.New()
-		//
-		// engine.Any("/", func(ctx *gin.Context) {
-		// 	ctx.JSON(http.StatusOK, gin.H{"a": "a"})
-		// })
-		// TlsServer(engine)
+		// 读取输出数据
+		output := out.String()
 
-		// str := "192.168.11.1/24"
-		// s := str[strings.LastIndex(str, "/")+1:]
-		// firstSubnetMask := s[strings.LastIndex(s, "/")+1:]
-		//
-		// res := true
-		// if firstSubnetMask[0] < '1' || firstSubnetMask[0] > '9' {
-		// 	res = false
-		// }
-		//
-		// // res := unicode.IsDigit(rune(s[0]))
-		// fmt.Println(res)
+		// 输出结果
+		fmt.Println("Command Output:")
+		fmt.Println(output)
+
+		res := strings.Split(output, "\n")
+		for i, v := range res {
+			fmt.Println(i, v)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(demoCmd)
+
+	demoCmd.Flags().StringVarP(&port, "port", "p", "80", "ip")
+	demoCmd.Flags().StringVarP(&ip, "ip", "i", "", "port")
 }
 
-func TlsServer(engine *gin.Engine) {
-	tlsConfig := &tls.Config{
-		GetCertificate: func(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			cert, err := getCertificateByDomainV2(helloInfo)
-			return cert, err
-		},
-		NextProtos: []string{"h2", "http/1.1"},
-		MaxVersion: tls.VersionTLS13,
-		MinVersion: tls.VersionTLS11,
-		CipherSuites: []uint16{
-			tls.TLS_AES_128_GCM_SHA256,
-			tls.TLS_CHACHA20_POLY1305_SHA256,
-			tls.TLS_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-		},
-	}
-
-	host := ":8888"
-	listen, err := tls.Listen("tcp", host, tlsConfig)
+func CheckPortIsUsed(ip string, port string) bool {
+	address := fmt.Sprintf("%s:%s", ip, port)
+	conn, err := net.Listen("tcp", address)
 	if err != nil {
-		os.Exit(1)
+		if strings.Contains(err.Error(), "address already in use") {
+			return true // 端口被占用
+		}
+		return false
 	}
-	err = http.Serve(listen, engine)
-	if err != nil {
-		os.Exit(1)
-	}
-	defer listen.Close()
-}
-func getCertificateByDomainV2(helloInfo *tls.ClientHelloInfo) (*tls.Certificate, error) {
-	var AcmeCertManager = autocert.Manager{
-		Prompt: autocert.AcceptTOS,
-		Cache:  autocert.DirCache("certs"),
-	}
-
-	tls, err := AcmeCertManager.GetCertificate(helloInfo)
-	if err != nil {
-		return nil, err
-	}
-	return tls, err
+	// 端口未被占用，需要关闭监听
+	conn.Close()
+	return false
 }
