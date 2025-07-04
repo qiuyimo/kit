@@ -56,7 +56,7 @@ func init() {
 	consumeCmd.Flags().DurationVar(&kafkaConfig.SleepTime, "sleep-time", 1*time.Second, "Sleep time between messages")
 	consumeCmd.Flags().BoolVar(&kafkaConfig.Verbose, "verbose", true, "Enable verbose output for successful messages")
 	consumeCmd.Flags().StringVar(&kafkaConfig.GroupID, "group-id", "", "Consumer group ID")
-	consumeCmd.Flags().StringVar(&kafkaConfig.OffsetsInitial, "offsets-initial", "newest", "Offsets initial position (oldest/newest)")
+	consumeCmd.Flags().StringVar(&kafkaConfig.OffsetsInitial, "offsets-initial", "newest", "Offsets initial position (oldest/newest), If the consumer group has been used, it is invalid")
 }
 
 type consumerGroupHandler struct {
@@ -111,6 +111,11 @@ func getClient(cfg KafkaConfig) *sarama.Config {
 		return scramClientGeneratorFunc(config.Net.SASL.Mechanism)
 	}
 
+	/*
+		cfg.OffsetsInitial（即 config.Consumer.Offsets.Initial）只在 group 第一次消费某个分区时生效。
+		只要 group id 在 Kafka 里有 offset 记录（即之前消费过），下次启动会从上次提交的 offset 继续消费，而不是从头（oldest）或最新（newest）。
+		OffsetsInitial 只有在该 group id 从未消费过该 topic/partition时，才决定起始 offset。
+	*/
 	// 根据参数设置 offsets initial
 	if cfg.OffsetsInitial == "oldest" {
 		config.Consumer.Offsets.Initial = sarama.OffsetOldest
