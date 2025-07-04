@@ -22,9 +22,7 @@ import (
 var consumeCmd = &cobra.Command{
 	Use:   "consume",
 	Short: "kafka consume",
-	Example: `dev env:
-		product dev:
-		kit kafka consume --ca /home/user/certs/ca.crt \
+	Example: `kit kafka consume --ca /home/user/certs/ca.crt \
 		--cert /home/user/certs/client.crt \
 		--key /home/user/certs/client.key \
 		--user xxxx \
