@@ -44,7 +44,7 @@ var consumeCmd = &cobra.Command{
 func init() {
 	kafkaCmd.AddCommand(consumeCmd)
 
-	consumeCmd.Flags().StringSliceVar(&kafkaConfig.Brokers, "brokers", []string{"10.213.144.10:9092"}, "Kafka broker addresses")
+	consumeCmd.Flags().StringSliceVar(&kafkaConfig.Brokers, "brokers", []string{"127.0.0.1:9092"}, "Kafka broker addresses")
 	consumeCmd.Flags().StringVar(&kafkaConfig.Topic, "topic", "test-topic", "Kafka topic")
 	consumeCmd.Flags().StringVar(&kafkaConfig.CertPath, "cert", "", "TLS cert path")
 	consumeCmd.Flags().StringVar(&kafkaConfig.KeyPath, "key", "", "TLS key path")
