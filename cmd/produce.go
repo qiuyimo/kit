@@ -190,17 +190,6 @@ func kafkaProducer(cfg KafkaConfig) {
 	var totalMessages int64
 	var wg sync.WaitGroup
 
-	// 设置信号处理
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	// 启动信号处理协程
-	go func() {
-		<-sigChan
-		fmt.Println("\n接收到停止信号，正在优雅停止...")
-		cancel()
-	}()
-
 	for i := 0; i < cfg.Connections; i++ {
 		wg.Add(1)
 		go func(id int) {
@@ -271,8 +260,28 @@ func kafkaProducer(cfg KafkaConfig) {
 		}(i)
 	}
 
-	// 等待所有生产者协程完成
-	wg.Wait()
+	// 设置信号处理
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// 启动信号处理协程
+	<-sigChan
+	fmt.Println("\n接收到停止信号，正在优雅停止...")
+	cancel()
+
+	// 等待所有生产者协程完成，带5秒超时
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		fmt.Println("所有生产者已优雅停止")
+	case <-time.After(5 * time.Second):
+		fmt.Println("警告: 5秒超时，强制停止程序")
+	}
 
 	// 计算运行时间
 	runtime := time.Since(startTime)

@@ -134,14 +134,6 @@ func kafkaConsumer(cfg KafkaConfig) {
 	var totalMessages int64
 	var wg sync.WaitGroup
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigChan
-		fmt.Println("\n接收到停止信号，正在优雅停止...")
-		cancel()
-	}()
-
 	config := getClient(cfg)
 	client, err := sarama.NewClient(cfg.Brokers, config)
 	if err != nil {
@@ -183,7 +175,26 @@ func kafkaConsumer(cfg KafkaConfig) {
 		}(i)
 	}
 
-	wg.Wait()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+	fmt.Println("\n接收到停止信号，正在优雅停止...")
+	cancel()
+
+	// 等待所有生产者协程完成，带5秒超时
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		fmt.Println("所有生产者已优雅停止")
+	case <-time.After(5 * time.Second):
+		fmt.Println("警告: 5秒超时，强制停止程序")
+	}
+
 	runtime := time.Since(startTime)
 	finalCount := atomic.LoadInt64(&totalMessages)
 
